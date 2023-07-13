@@ -1,4 +1,5 @@
 import asyncio
+import platform
 from pathlib import Path
 from typing import Any, Mapping, Optional, Union
 
@@ -15,6 +16,9 @@ from aaa1111.utils import (
     load_dict_file,
     recursive_read_image,
 )
+
+if platform.system() == "Windows":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
 @beartype
@@ -59,7 +63,14 @@ class AAA1111:
 
     def __del__(self):
         self.client.close()
-        asyncio.run(self.aclient.aclose())
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+        if loop and loop.is_running():
+            loop.create_task(self.aclient.aclose())
+        else:
+            asyncio.run(self.aclient.aclose())
 
     @property
     def base_url(self):
@@ -85,7 +96,7 @@ class AAA1111:
         payload = {**self.defaults, **payload, **kwargs}
         payload = recursive_read_image(payload)
 
-        resp = self.client.post(endpoint, json=payload, **(client_kwargs or {}))
+        resp = self.post(endpoint, json=payload, **(client_kwargs or {}))
         resp.raise_for_status()
 
         data = resp.json()
@@ -145,7 +156,7 @@ class AAA1111:
         client_kwargs: Optional[Mapping[str, Any]] = None,
         **kwargs,
     ):
-        return self._a2img(
+        return await self._a2img(
             payload,
             client_kwargs=client_kwargs,
             endpoint="/sdapi/v1/txt2img",
@@ -171,7 +182,7 @@ class AAA1111:
         client_kwargs: Optional[Mapping[str, Any]] = None,
         **kwargs,
     ):
-        return self._a2img(
+        return await self._a2img(
             payload,
             client_kwargs=client_kwargs,
             endpoint="/sdapi/v1/img2img",

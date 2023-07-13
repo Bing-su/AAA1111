@@ -56,36 +56,44 @@ def is_image_file(obj: Any) -> bool:
     return False
 
 
-def recursive_read_image(item: Any):
-    if isinstance(item, Sequence):
+def _recursive_read_image(item: Any):
+    if not isinstance(item, str) and isinstance(item, Sequence):
         return [
-            image_to_base64(v) if is_image_file(v) else recursive_read_image(v)
+            image_to_base64(v) if is_image_file(v) else _recursive_read_image(v)
             for v in item
         ]
     if isinstance(item, Mapping):
         return {
-            k: image_to_base64(v) if is_image_file(v) else recursive_read_image(v)
+            k: image_to_base64(v) if is_image_file(v) else _recursive_read_image(v)
             for k, v in item.items()
         }
     return item
 
 
-async def arecursive_read_image(item: Union[Sequence[Any], Mapping[str, Any]]):
-    if isinstance(item, Sequence):
+def recursive_read_image(item: Mapping[str, Any]) -> Dict[str, Any]:
+    return _recursive_read_image(item)
+
+
+async def _arecursive_read_image(item: Any):
+    if not isinstance(item, str) and isinstance(item, Sequence):
         return [
             (await aimage_to_base64(v))
             if is_image_file(v)
-            else (await arecursive_read_image(v))
+            else (await _arecursive_read_image(v))
             for v in item
         ]
     if isinstance(item, Mapping):
         return {
             k: (await aimage_to_base64(v))
             if is_image_file(v)
-            else (await arecursive_read_image(v))
+            else (await _arecursive_read_image(v))
             for k, v in item.items()
         }
     return item
+
+
+async def arecursive_read_image(item: Mapping[str, Any]) -> Dict[str, Any]:
+    return await _arecursive_read_image(item)
 
 
 def is_valid_dict_file(file: Union[str, Path]) -> bool:
