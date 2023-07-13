@@ -1,0 +1,47 @@
+
+[project]
+name = "aaa1111"
+description = "AaaaaAAaaaAAAaaAAAAaAAAAA"
+authors = [
+    {name = "Bingsu", email = "ks2515@naver.com"},
+]
+dependencies = [
+    "httpx",
+    "aiofile",  # aiofiles 아님
+    "pillow",
+    # ------
+    "orjson",
+    "rtoml",
+    "ruamel.yaml",
+    # ------
+    "beartype",
+    "typing-extensions",
+    "loguru",
+    "rich",
+    "typer",
+]
+requires-python = ">=3.8"
+readme = "README.md"
+license = {text = "MIT"}
+dynamic = ["version"]
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "black",
+    "ruff",
+    "pre-commit",
+    "ipywidgets",
+]
+
+[tool.pdm.version]
+source = "file"
+path = "aaa1111/__version__.py"
+
+[tool.ruff]
+select = ["A", "B", "C4", "C90", "E", "EM", "F", "FA", "I001", "ISC", "N", "PIE", "PT", "RET", "RUF", "SIM", "UP", "W"]
+ignore = ["B008", "B905", "E501"]
+unfixable = ["F401"]
