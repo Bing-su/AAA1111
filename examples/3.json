@@ -1,0 +1,19 @@
+{
+  "prompt": "masterpiece, best quality, 1girl",
+  "negative_prompt": "(worst quality, low quality:1.1), text, title, logo, signature, (EasyNegativeV2:0.7), (negative_hand-neg:0.7)",
+  "sampler_name": "DPM++ 2M Karras",
+  "batch_size": 2,
+  "n_iter": 1,
+  "cfg_scale": 7.5,
+  "width": 512,
+  "height": 768,
+  "steps": 20,
+  "override_settings": {
+    "CLIP_stop_at_last_layers": 2
+  },
+  "alwayson_scripts": {
+    "Simple wildcards": {
+      "args": []
+    }
+  }
+}
