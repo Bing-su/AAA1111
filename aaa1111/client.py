@@ -6,7 +6,7 @@ import orjson
 from beartype import beartype
 from httpx import AsyncClient, BasicAuth, Client
 
-from aaa1111.types import TXT2IMG, Response
+from aaa1111.types import IMG2IMG, TXT2IMG, Response
 from aaa1111.utils import (
     abase64_to_image,
     aload_dict_file,
@@ -70,23 +70,25 @@ class AAA1111:
         self.client.base_url = url
         self.aclient.base_url = url
 
-    def txt2img(
+    def _2img(
         self,
-        payload: Union[str, Path, Mapping[str, Any], TXT2IMG],
+        payload: Union[str, Path, Mapping[str, Any], TXT2IMG, IMG2IMG],
         client_kwargs: Optional[Mapping[str, Any]] = None,
+        *,
+        endpoint: str,
         **kwargs,
     ):
         if isinstance(payload, (str, Path)):
             payload = load_dict_file(payload)
-        elif isinstance(payload, TXT2IMG):
+        elif isinstance(payload, (TXT2IMG, IMG2IMG)):
             payload = payload.asdict()
         payload = {**self.defaults, **payload, **kwargs}
         payload = recursive_read_image(payload)
 
-        resp = self.post("/sdapi/v1/txt2img", json=payload, **(client_kwargs or {}))
+        resp = self.client.post(endpoint, json=payload, **(client_kwargs or {}))
         resp.raise_for_status()
-        data = resp.json()
 
+        data = resp.json()
         images = data["images"]
         images = [base64_to_image(img) for img in images]
         info = orjson.loads(data["info"])
@@ -96,22 +98,22 @@ class AAA1111:
             info=info,
         )
 
-    async def atxt2img(
+    async def _a2img(
         self,
-        payload: Union[str, Path, Mapping[str, Any], TXT2IMG],
+        payload: Union[str, Path, Mapping[str, Any], TXT2IMG, IMG2IMG],
         client_kwargs: Optional[Mapping[str, Any]] = None,
+        *,
+        endpoint: str,
         **kwargs,
     ):
         if isinstance(payload, (str, Path)):
             payload = await aload_dict_file(payload)
-        elif isinstance(payload, TXT2IMG):
+        elif isinstance(payload, (TXT2IMG, IMG2IMG)):
             payload = payload.asdict()
         payload = {**self.defaults, **payload, **kwargs}
         payload = await arecursive_read_image(payload)
 
-        resp = await self.apost(
-            "/sdapi/v1/txt2img", json=payload, **(client_kwargs or {})
-        )
+        resp = await self.apost(endpoint, json=payload, **(client_kwargs or {}))
         resp.raise_for_status()
         data = resp.json()
 
@@ -122,4 +124,56 @@ class AAA1111:
             images=images,
             parameters=data["parameters"],
             info=info,
+        )
+
+    def txt2img(
+        self,
+        payload: Union[str, Path, Mapping[str, Any], TXT2IMG],
+        client_kwargs: Optional[Mapping[str, Any]] = None,
+        **kwargs,
+    ):
+        return self._2img(
+            payload,
+            client_kwargs=client_kwargs,
+            endpoint="/sdapi/v1/txt2img",
+            **kwargs,
+        )
+
+    async def atxt2img(
+        self,
+        payload: Union[str, Path, Mapping[str, Any], TXT2IMG],
+        client_kwargs: Optional[Mapping[str, Any]] = None,
+        **kwargs,
+    ):
+        return self._a2img(
+            payload,
+            client_kwargs=client_kwargs,
+            endpoint="/sdapi/v1/txt2img",
+            **kwargs,
+        )
+
+    def img2img(
+        self,
+        payload: Union[str, Path, Mapping[str, Any], IMG2IMG],
+        client_kwargs: Optional[Mapping[str, Any]] = None,
+        **kwargs,
+    ):
+        return self._2img(
+            payload,
+            client_kwargs=client_kwargs,
+            endpoint="/sdapi/v1/img2img",
+            **kwargs,
+        )
+
+    async def aimg2img(
+        self,
+        payload: Union[str, Path, Mapping[str, Any], IMG2IMG],
+        client_kwargs: Optional[Mapping[str, Any]] = None,
+        **kwargs,
+    ):
+        return self._a2img(
+            payload,
+            client_kwargs=client_kwargs,
+            endpoint="/sdapi/v1/img2img",
+            **kwargs,
         )

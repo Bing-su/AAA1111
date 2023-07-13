@@ -11,7 +11,7 @@ Number = Union[int, float]
 
 @beartype
 @dataclass
-class Common:
+class _2IMG:  # noqa: N801
     prompt: str = ""
     styles: List[str] = field(default_factory=list)
     seed: int = -1
@@ -58,7 +58,7 @@ class Common:
 
 @beartype
 @dataclass
-class TXT2IMG(Common):
+class TXT2IMG(_2IMG):
     enable_hr: bool = False
     denoising_strength: Number = 0.0
     firstphase_width: int = 0
@@ -94,7 +94,7 @@ class InpaintingMaskInvert(IntEnum):
 
 @beartype
 @dataclass
-class IMG2IMG(Common):
+class IMG2IMG(_2IMG):
     init_images: List[Union[str, Path, Image.Image]] = field(default_factory=list)
     resize_mode: Union[ResizeMode, Literal[0, 1, 2, 3]] = ResizeMode.Just_resize
     denoising_strength: Number = 0.75
