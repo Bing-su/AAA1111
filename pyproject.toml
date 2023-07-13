@@ -18,7 +18,7 @@ dependencies = [
     "beartype",
     "filetype",
     "typing-extensions",
-    "loguru",
+    "python-ulid",
     "rich",
     "typer",
 ]
@@ -26,6 +26,10 @@ requires-python = ">=3.8"
 readme = "README.md"
 license = {text = "MIT"}
 dynamic = ["version"]
+
+[project.scripts]
+txt2img = "aaa1111.__main__:app_txt2img"
+img2img = "aaa1111.__main__:app_img2img"
 
 [build-system]
 requires = ["pdm-backend"]

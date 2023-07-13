@@ -12,7 +12,7 @@ from PIL import Image
 from ruamel.yaml import YAML
 
 Image_Type = Union[str, Path, Image.Image]
-DICT_EXT = (".toml", ".yaml", ".yml", "json")
+DICT_EXT = (".toml", ".yaml", ".yml", ".json")
 
 
 def image_to_base64(img: Image_Type) -> str:
