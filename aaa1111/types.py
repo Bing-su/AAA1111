@@ -1,7 +1,7 @@
-from dataclasses import dataclass, field
+from dataclasses import asdict, dataclass, field
 from enum import IntEnum
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Mapping, Optional, Union
+from typing import Any, Dict, List, Literal, Mapping, Optional, Sized, Union
 
 from beartype import beartype
 from PIL import Image
@@ -44,6 +44,16 @@ class Common:
     send_images: bool = True
     save_images: bool = False
     alwayson_scripts: Mapping[str, Any] = field(default_factory=dict)
+
+    def asdict(self) -> Dict[str, Any]:
+        d = asdict(self)
+        for attr in self.__dataclass_fields__:
+            value = getattr(self, attr)
+            default = self.__dataclass_fields__[attr].default
+
+            if value == default or (isinstance(value, Sized) and not value):
+                del d[attr]
+        return d
 
 
 @beartype

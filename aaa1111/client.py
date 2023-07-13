@@ -1,5 +1,4 @@
 import asyncio
-from dataclasses import asdict
 from pathlib import Path
 from typing import Any, Mapping, Optional, Union
 
@@ -11,8 +10,10 @@ from aaa1111.types import TXT2IMG, Response
 from aaa1111.utils import (
     abase64_to_image,
     aload_dict_file,
+    arecursive_read_image,
     base64_to_image,
     load_dict_file,
+    recursive_read_image,
 )
 
 
@@ -26,13 +27,19 @@ class AAA1111:
         https: bool = False,
         username: Union[str, bytes, None] = None,
         password: Union[str, bytes, None] = None,
-        **client_kwargs: Any,
+        defaults: Union[str, Path, Mapping[str, Any], None] = None,
+        client_kwargs: Optional[Mapping[str, Any]] = None,
     ):
         if base_url is None:
             pre = "https" if https else "http"
             init_base_url = f"{pre}://{host}:{port}"
         else:
             init_base_url = base_url
+
+        if isinstance(defaults, (str, Path)):
+            self.defaults = load_dict_file(defaults)
+        else:
+            self.defaults = defaults or {}
 
         auth = BasicAuth(username, password) if username else None
         kwargs = {
@@ -44,6 +51,11 @@ class AAA1111:
         }
         self.client = Client(**kwargs)
         self.aclient = AsyncClient(**kwargs)
+
+        self.get = self.client.get
+        self.aget = self.aclient.get
+        self.post = self.client.post
+        self.apost = self.aclient.post
 
     def __del__(self):
         self.client.close()
@@ -67,14 +79,11 @@ class AAA1111:
         if isinstance(payload, (str, Path)):
             payload = load_dict_file(payload)
         elif isinstance(payload, TXT2IMG):
-            payload = asdict(payload)
+            payload = payload.asdict()
+        payload = {**self.defaults, **payload, **kwargs}
+        payload = recursive_read_image(payload)
 
-        if kwargs:
-            payload = {**payload, **kwargs}
-
-        resp = self.client.post(
-            "/sdapi/v1/txt2img", json=payload, **(client_kwargs or {})
-        )
+        resp = self.post("/sdapi/v1/txt2img", json=payload, **(client_kwargs or {}))
         resp.raise_for_status()
         data = resp.json()
 
@@ -96,12 +105,11 @@ class AAA1111:
         if isinstance(payload, (str, Path)):
             payload = await aload_dict_file(payload)
         elif isinstance(payload, TXT2IMG):
-            payload = asdict(payload)
+            payload = payload.asdict()
+        payload = {**self.defaults, **payload, **kwargs}
+        payload = await arecursive_read_image(payload)
 
-        if kwargs:
-            payload = {**payload, **kwargs}
-
-        resp = await self.aclient.post(
+        resp = await self.apost(
             "/sdapi/v1/txt2img", json=payload, **(client_kwargs or {})
         )
         resp.raise_for_status()

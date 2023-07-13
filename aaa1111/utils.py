@@ -21,6 +21,9 @@ def image_to_base64(img: Image_Type) -> str:
         img.save(buffer)
         value = buffer.getvalue()
     else:
+        if isinstance(img, str) and not Path(img).is_file():
+            # expect img is base64 string
+            return img
         with open(img, "rb") as f:
             value = f.read()
     return base64.b64encode(value).decode("utf-8")
@@ -32,6 +35,9 @@ async def aimage_to_base64(img: Image_Type) -> str:
         img.save(buffer)
         value = buffer.getvalue()
     else:
+        if isinstance(img, str) and not Path(img).is_file():
+            # expect img is base64 string
+            return img
         async with async_open(img, "rb") as f:
             value = await f.read()
     return base64.b64encode(value).decode("utf-8")
