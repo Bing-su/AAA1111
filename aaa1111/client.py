@@ -39,6 +39,7 @@ class AAA1111:
             "auth": auth,
             "follow_redirects": True,
             "base_url": init_base_url,
+            "timeout": None,
             **(client_kwargs or {}),
         }
         self.client = Client(**kwargs)
