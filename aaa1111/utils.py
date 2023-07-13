@@ -7,7 +7,6 @@ import filetype
 import orjson
 import rtoml
 from aiofile import async_open
-from asyncer import asyncify
 from PIL import Image
 from ruamel.yaml import YAML
 
@@ -45,9 +44,6 @@ async def aimage_to_base64(img: Image_Type) -> str:
 
 def base64_to_image(s: str) -> Image.Image:
     return Image.open(io.BytesIO(base64.b64decode(s)))
-
-
-abase64_to_image = asyncify(base64_to_image)
 
 
 def is_image_file(obj: Any) -> bool:

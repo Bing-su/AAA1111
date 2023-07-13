@@ -9,11 +9,11 @@ from ulid import ULID
 from aaa1111.client import AAA1111
 from aaa1111.utils import load_dict_file
 
-app_txt2img = Typer(no_args_is_help=True)
-app_img2img = Typer(no_args_is_help=True)
+app_txt2img = Typer()
+app_img2img = Typer()
 
 
-@app_txt2img.command()
+@app_txt2img.command(no_args_is_help=True)
 def txt2img(
     params: Annotated[
         List[Path],
@@ -35,18 +35,20 @@ def txt2img(
             file_okay=False,
             dir_okay=True,
             writable=True,
+            envvar="AAA1111_OUTPUT_DIR",
         ),
     ] = "output",
-    host: str = "127.0.0.1",
-    port: int = 7860,
     base_url: Annotated[
         Optional[str],
         Option(
             "-b",
             "--base-url",
-            help="base url, if given, 'host' and 'port' are ignored.",
+            help="base url, if given, 'host' and 'port' and 'https' are ignored.",
+            envvar="AAA1111_BASE_URL",
         ),
     ] = None,
+    host: str = "127.0.0.1",
+    port: int = 7860,
     https: bool = False,
     save_ext: str = "png",
 ):
@@ -59,7 +61,7 @@ def txt2img(
         prompts = payload.get("prompt", "")
         negatives = payload.get("negative_prompt", "")
         with Status(
-            f"Requesting task {i + 1}/{length}...\nprompts: {prompts}\nnegatives: {negatives}"
+            f"Generating task {i + 1}/{length}...\nprompts: {prompts}\nnegatives: {negatives}"
         ):
             resp = client.txt2img(payload)
 
@@ -67,7 +69,7 @@ def txt2img(
                 image.save(output / (f"{ULID()}.{save_ext}"), lossless=True)
 
 
-@app_img2img.command()
+@app_img2img.command(no_args_is_help=True)
 def img2img(
     params: Annotated[
         List[Path],
@@ -89,18 +91,20 @@ def img2img(
             file_okay=False,
             dir_okay=True,
             writable=True,
+            envvar="AAA1111_OUTPUT_DIR",
         ),
     ] = "output",
-    host: str = "127.0.0.1",
-    port: int = 7860,
     base_url: Annotated[
         Optional[str],
         Option(
             "-b",
             "--base-url",
-            help="base url, if given, 'host' and 'port' are ignored.",
+            help="base url, if given, 'host' and 'port' and 'https' are ignored.",
+            envvar="AAA1111_BASE_URL",
         ),
     ] = None,
+    host: str = "127.0.0.1",
+    port: int = 7860,
     https: bool = False,
     save_ext: str = "png",
 ):
@@ -113,7 +117,7 @@ def img2img(
         prompts = payload.get("prompt", "")
         negatives = payload.get("negative_prompt", "")
         with Status(
-            f"Requesting task {i + 1}/{length}...\nprompts: {prompts}\nnegatives: {negatives}"
+            f"Generating task {i + 1}/{length}...\nprompts: {prompts}\nnegatives: {negatives}"
         ):
             resp = client.img2img(payload)
 

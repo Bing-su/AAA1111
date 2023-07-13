@@ -9,7 +9,6 @@ from httpx import AsyncClient, BasicAuth, Client
 
 from aaa1111.types import IMG2IMG, TXT2IMG, Response
 from aaa1111.utils import (
-    abase64_to_image,
     aload_dict_file,
     arecursive_read_image,
     base64_to_image,
@@ -129,7 +128,7 @@ class AAA1111:
         data = resp.json()
 
         images = data["images"]
-        images = [await abase64_to_image(img) for img in images]
+        images = [base64_to_image(img) for img in images]
         info = orjson.loads(data["info"])
         return Response(
             images=images,
