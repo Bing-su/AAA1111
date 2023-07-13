@@ -14,7 +14,9 @@ dependencies = [
     "rtoml",
     "ruamel.yaml",
     # ------
+    "asyncer",
     "beartype",
+    "filetype",
     "typing-extensions",
     "loguru",
     "rich",
