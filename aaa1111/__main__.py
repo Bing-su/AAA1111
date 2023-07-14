@@ -3,6 +3,8 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import rich.progress as pg
+from rich.console import Group
+from rich.live import Live
 from rich.panel import Panel
 from rich.syntax import Syntax
 from ruamel.yaml import YAML
@@ -120,19 +122,23 @@ def _inner(
     progress = pg.Progress(
         pg.SpinnerColumn(),
         pg.TextColumn("[progress.description]{task.description}"),
+        pg.BarColumn(),
         pg.TimeElapsedColumn(),
+        "/",
         pg.TimeRemainingColumn(),
-        pg.MofNCompleteColumn(),
+        pg.TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
     )
+    pg_task = progress.add_task(task, total=length)
 
-    with progress:
-        for i in progress.track(range(length), description=f"Processing {task}..."):
+    with Live(progress) as live:
+        for i in range(length):
             payload = load_dict_file(params[i])
             panel = Panel(
                 Syntax(format_payload(payload), "yaml", theme="ansi_dark"),
                 title=f"{task} [green]{i + 1}/{length}[/green]",
             )
-            progress.print(panel)
+            live.update(Group(progress, panel))
+
             if task == "txt2img":
                 resp = client.txt2img(payload)
             elif task == "img2img":
@@ -143,6 +149,9 @@ def _inner(
 
             for image in resp.images:
                 image.save(output / (f"{ULID()}.{save_ext}"), lossless=True)
+
+            progress.update(pg_task, advance=1)
+            live.refresh()
 
 
 def format_payload(payload: Dict[str, Any]) -> str:
