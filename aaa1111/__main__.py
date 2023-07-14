@@ -144,7 +144,7 @@ def _inner(
                 raise ValueError(msg)
 
             for image in resp.images:
-                image.save(output / (f"{ULID()}.{save_ext}"), lossless=True)
+                image.save(output / (f"{ULID()}.{save_ext}"), quality=95, lossless=True)
 
             progress.update(pg_task, advance=1)
             live.refresh()
