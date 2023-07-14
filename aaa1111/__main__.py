@@ -17,7 +17,6 @@ from aaa1111.utils import load_dict_file
 
 app_txt2img = Typer()
 app_img2img = Typer()
-yaml = YAML()
 
 
 @app_txt2img.command(no_args_is_help=True)
@@ -26,10 +25,8 @@ def txt2img(
         List[Path],
         Argument(
             show_default=False,
-            help="Path to params files. .toml, .yaml, .yml, .json available.",
+            help="Path to params files. .toml, .yaml, .yml, .json available. others will be ignored.",
             exists=True,
-            file_okay=True,
-            dir_okay=False,
         ),
     ],
     output: Annotated[
@@ -68,10 +65,8 @@ def img2img(
         List[Path],
         Argument(
             show_default=False,
-            help="Path to params files. .toml, .yaml, .yml, .json available.",
+            help="Path to params files. .toml, .yaml, .yml, .json available. others will be ignored.",
             exists=True,
-            file_okay=True,
-            dir_okay=False,
         ),
     ],
     output: Annotated[
@@ -117,6 +112,7 @@ def _inner(
 ):
     client = AAA1111(host=host, port=port, base_url=base_url, https=https)
     output.mkdir(parents=True, exist_ok=True)
+    params = filter_paths(params)
     length = len(params)
 
     progress = pg.Progress(
@@ -156,8 +152,13 @@ def _inner(
 
 def format_payload(payload: Dict[str, Any]) -> str:
     stream = io.StringIO()
-    yaml.dump(payload, stream)
+    YAML().dump(payload, stream)
     return stream.getvalue().strip()
+
+
+def filter_paths(paths: List[Path]) -> List[Path]:
+    ext = [".yaml", ".yml", ".json", ".toml"]
+    return [p for p in paths if p.is_file() and p.suffix in ext]
 
 
 if __name__ == "__main__":
