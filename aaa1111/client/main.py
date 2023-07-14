@@ -9,6 +9,7 @@ from httpx import AsyncClient, BasicAuth, Client
 
 from aaa1111.utils import aload_dict_file, load_dict_file
 
+from .extras import ExtrasMixin
 from .toimg import ToImageMixin
 
 if platform.system() == "Windows":
@@ -16,7 +17,7 @@ if platform.system() == "Windows":
 
 
 @beartype
-class AAA1111(ToImageMixin):
+class AAA1111(ExtrasMixin, ToImageMixin):
     def __init__(
         self,
         host: str = "127.0.0.1",

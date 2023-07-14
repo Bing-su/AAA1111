@@ -46,12 +46,24 @@ class ExtrasSingleImage(ExtraBase):
 
 @beartype
 @dataclass
+class FileData:
+    data: Union[str, Path, Image.Image]
+    name: str = ""  # never used (v1.4.1)
+
+    def __post_init__(self):
+        if isinstance(self.data, (str, Path)) and not self.name:
+            self.name = Path(self.data).name
+
+
+@beartype
+@dataclass
 class ExtrasBatchImages(ExtraBase):
-    images: List[Union[str, Path, Image.Image]] = field(default_factory=list)
+    imageList: List[FileData] = field(default_factory=list)  # noqa: N815
 
 
 @dataclass
 class ExtrasSingleImageResponse:
+    html_info: str
     image: Image.Image
 
     def __post_init__(self):
@@ -61,6 +73,7 @@ class ExtrasSingleImageResponse:
 
 @dataclass
 class ExtrasBatchImagesResponse:
+    html_info: str
     images: List[Image.Image]
 
     def __post_init__(self):
