@@ -1,4 +1,4 @@
-from .extra import (
+from .extras import (
     ExtrasBatchImages,
     ExtrasBatchImagesResponse,
     ExtrasSingleImage,
