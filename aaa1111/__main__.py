@@ -32,17 +32,17 @@ def txt2img(
             rich_help_panel="api",
         ),
     ],
-    output: Annotated[
+    save_dir: Annotated[
         Path,
         Option(
-            "-o",
-            "--output",
-            help="Path to output directory.",
+            "-d",
+            "--save-dir",
+            help="Path to save directory.",
             exists=False,
             file_okay=False,
             dir_okay=True,
             writable=True,
-            envvar="AAA1111_OUTPUT_DIR",
+            envvar="AAA1111_SAVE_DIR",
             rich_help_panel="save",
         ),
     ] = defalut_output,
@@ -51,7 +51,7 @@ def txt2img(
         Option(
             "-b",
             "--base-url",
-            help="base url, if given, 'host' and 'port' and 'https' are ignored.",
+            help="base url, if given, 'host', 'port' and 'https' are ignored.",
             envvar="AAA1111_BASE_URL",
             rich_help_panel="api",
         ),
@@ -67,7 +67,7 @@ def txt2img(
 ):
     _inner(
         params,
-        output,
+        save_dir,
         base_url,
         host,
         port,
@@ -90,17 +90,17 @@ def img2img(
             rich_help_panel="api",
         ),
     ],
-    output: Annotated[
+    save_dir: Annotated[
         Path,
         Option(
-            "-o",
-            "--output",
-            help="Path to output directory.",
+            "-d",
+            "--save-dir",
+            help="Path to save directory.",
             exists=False,
             file_okay=False,
             dir_okay=True,
             writable=True,
-            envvar="AAA1111_OUTPUT_DIR",
+            envvar="AAA1111_SAVE_DIR",
             rich_help_panel="save",
         ),
     ] = defalut_output,
@@ -109,7 +109,7 @@ def img2img(
         Option(
             "-b",
             "--base-url",
-            help="base url, if given, 'host' and 'port' and 'https' are ignored.",
+            help="base url, if given, 'host', 'port' and 'https' are ignored.",
             envvar="AAA1111_BASE_URL",
             rich_help_panel="api",
         ),
@@ -125,7 +125,7 @@ def img2img(
 ):
     _inner(
         params,
-        output,
+        save_dir,
         base_url,
         host,
         port,
@@ -139,7 +139,7 @@ def img2img(
 
 def _inner(
     params: List[Path],
-    output: Path,
+    save_dir: Path,
     base_url: Optional[str],
     host: str,
     port: int,
@@ -151,7 +151,7 @@ def _inner(
     task: str = "txt2img",
 ):
     client = AAA1111(host=host, port=port, base_url=base_url, https=https)
-    output.mkdir(parents=True, exist_ok=True)
+    save_dir.mkdir(parents=True, exist_ok=True)
     params = filter_paths(params)
     length = len(params)
 
@@ -191,7 +191,7 @@ def _inner(
                 else:
                     infotext = None
 
-                save_image(image, output, infotext, save_ext, quality, lossless)
+                save_image(image, save_dir, infotext, save_ext, quality, lossless)
 
             progress.update(pg_task, advance=1)
             live.refresh()

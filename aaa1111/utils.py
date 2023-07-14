@@ -131,7 +131,7 @@ async def aload_dict_file(file: Union[str, Path]) -> Dict[str, Any]:
 
 def save_image(
     image: Image.Image,
-    output: Path,
+    save_dir: Path,
     infotext: Optional[str] = None,
     ext: str = "png",
     quality: int = 95,
@@ -139,7 +139,7 @@ def save_image(
 ):
     if not ext.startswith("."):
         ext = "." + ext
-    path = output.joinpath(str(ULID())).with_suffix(ext)
+    path = save_dir.joinpath(str(ULID())).with_suffix(ext)
     if not infotext:
         image.save(path, quality=quality, lossless=lossless)
         return
