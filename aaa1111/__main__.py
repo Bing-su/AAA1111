@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import rich.progress as pg
-from PIL import Image, PngImagePlugin
 from rich.console import Group
 from rich.live import Live
 from rich.panel import Panel
@@ -11,13 +10,15 @@ from rich.syntax import Syntax
 from ruamel.yaml import YAML
 from typer import Argument, Option, Typer
 from typing_extensions import Annotated
-from ulid import ULID
 
 from aaa1111.client import AAA1111
-from aaa1111.utils import load_dict_file
+from aaa1111.utils import load_dict_file, save_image
 
 app_txt2img = Typer()
 app_img2img = Typer()
+
+
+defalut_output = Path("output")
 
 
 @app_txt2img.command(no_args_is_help=True)
@@ -28,6 +29,7 @@ def txt2img(
             show_default=False,
             help="Path to params files. .toml, .yaml, .yml, .json available. others will be ignored.",
             exists=True,
+            rich_help_panel="api",
         ),
     ],
     output: Annotated[
@@ -41,8 +43,9 @@ def txt2img(
             dir_okay=True,
             writable=True,
             envvar="AAA1111_OUTPUT_DIR",
+            rich_help_panel="save",
         ),
-    ] = "output",
+    ] = defalut_output,
     base_url: Annotated[
         Optional[str],
         Option(
@@ -50,14 +53,30 @@ def txt2img(
             "--base-url",
             help="base url, if given, 'host' and 'port' and 'https' are ignored.",
             envvar="AAA1111_BASE_URL",
+            rich_help_panel="api",
         ),
     ] = None,
-    host: str = "127.0.0.1",
-    port: int = 7860,
-    https: bool = False,
-    save_ext: str = "png",
+    host: Annotated[str, Option("-h", "--host", rich_help_panel="api")] = "127.0.0.1",
+    port: Annotated[int, Option("-p", "--port", rich_help_panel="api")] = 7860,
+    https: Annotated[bool, Option(rich_help_panel="api")] = False,
+    save_ext: Annotated[
+        str, Option("-e", "--save-ext", rich_help_panel="save")
+    ] = "png",
+    quality: Annotated[int, Option("-q", "--quality", rich_help_panel="save")] = 95,
+    lossless: Annotated[bool, Option(rich_help_panel="save")] = True,
 ):
-    _inner(params, output, base_url, host, port, https, save_ext, task="txt2img")
+    _inner(
+        params,
+        output,
+        base_url,
+        host,
+        port,
+        https,
+        save_ext,
+        quality,
+        lossless,
+        task="txt2img",
+    )
 
 
 @app_img2img.command(no_args_is_help=True)
@@ -68,6 +87,7 @@ def img2img(
             show_default=False,
             help="Path to params files. .toml, .yaml, .yml, .json available. others will be ignored.",
             exists=True,
+            rich_help_panel="api",
         ),
     ],
     output: Annotated[
@@ -81,8 +101,9 @@ def img2img(
             dir_okay=True,
             writable=True,
             envvar="AAA1111_OUTPUT_DIR",
+            rich_help_panel="save",
         ),
-    ] = "output",
+    ] = defalut_output,
     base_url: Annotated[
         Optional[str],
         Option(
@@ -90,14 +111,30 @@ def img2img(
             "--base-url",
             help="base url, if given, 'host' and 'port' and 'https' are ignored.",
             envvar="AAA1111_BASE_URL",
+            rich_help_panel="api",
         ),
     ] = None,
-    host: str = "127.0.0.1",
-    port: int = 7860,
-    https: bool = False,
-    save_ext: str = "png",
+    host: Annotated[str, Option("-h", "--host", rich_help_panel="api")] = "127.0.0.1",
+    port: Annotated[int, Option("-p", "--port", rich_help_panel="api")] = 7860,
+    https: Annotated[bool, Option(rich_help_panel="api")] = False,
+    save_ext: Annotated[
+        str, Option("-e", "--save-ext", rich_help_panel="save")
+    ] = "png",
+    quality: Annotated[int, Option("-q", "--quality", rich_help_panel="save")] = 95,
+    lossless: Annotated[bool, Option(rich_help_panel="save")] = True,
 ):
-    _inner(params, output, base_url, host, port, https, save_ext, task="img2img")
+    _inner(
+        params,
+        output,
+        base_url,
+        host,
+        port,
+        https,
+        save_ext,
+        quality,
+        lossless,
+        task="img2img",
+    )
 
 
 def _inner(
@@ -108,6 +145,8 @@ def _inner(
     port: int,
     https: bool,
     save_ext: str,
+    quality: int,
+    lossless: bool,
     *,
     task: str = "txt2img",
 ):
@@ -145,7 +184,14 @@ def _inner(
                 raise ValueError(msg)
 
             for j, image in enumerate(resp.images):
-                save_image(image, resp.info, output, save_ext, j)
+                infotexts = resp.info.get("infotexts", [])
+                if infotexts:
+                    j %= len(infotexts)
+                    infotext = infotexts[j]
+                else:
+                    infotext = None
+
+                save_image(image, output, infotext, save_ext, quality, lossless)
 
             progress.update(pg_task, advance=1)
             live.refresh()
@@ -160,29 +206,6 @@ def format_payload(payload: Dict[str, Any]) -> str:
 def filter_paths(paths: List[Path]) -> List[Path]:
     ext = [".yaml", ".yml", ".json", ".toml"]
     return [p for p in paths if p.is_file() and p.suffix in ext]
-
-
-def save_image(
-    image: Image.Image, info: Dict[str, Any], output: Path, ext: str, idx: int = 0
-):
-    infotexts = info.get("infotexts", [])
-    path = output.joinpath(f"{ULID()}.{ext}")
-    if not infotexts:
-        image.save(path, quality=95, lossless=True)
-        return
-
-    idx %= len(infotexts)
-    infotext = infotexts[idx]
-    if ext.lower() == "png":
-        pnginfo = PngImagePlugin.PngInfo()
-        pnginfo.add_text("parameters", infotext)
-        image.save(path, pnginfo=pnginfo, quality=95)
-        return
-
-    exif = image.getexif()
-    # https://github.com/python-pillow/Pillow/issues/4935#issuecomment-698027721
-    exif[0x9286] = infotext
-    image.save(path, quality=95, lossless=True, exif=exif)
 
 
 if __name__ == "__main__":

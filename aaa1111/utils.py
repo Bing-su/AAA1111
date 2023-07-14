@@ -1,14 +1,15 @@
 import base64
 import io
 from pathlib import Path
-from typing import Any, Dict, Mapping, Sequence, Union
+from typing import Any, Dict, Mapping, Optional, Sequence, Union
 
 import filetype
 import orjson
 import rtoml
 from aiofile import async_open
-from PIL import Image
+from PIL import Image, PngImagePlugin
 from ruamel.yaml import YAML
+from ulid import ULID
 
 Image_Type = Union[str, Path, Image.Image]
 DICT_EXT = (".toml", ".yaml", ".yml", ".json")
@@ -126,3 +127,30 @@ async def aload_dict_file(file: Union[str, Path]) -> Dict[str, Any]:
             return orjson.loads(data)
         yaml = YAML()
         return dict(yaml.load(data))
+
+
+def save_image(
+    image: Image.Image,
+    output: Path,
+    infotext: Optional[str] = None,
+    ext: str = "png",
+    quality: int = 95,
+    lossless: bool = True,
+):
+    if not ext.startswith("."):
+        ext = "." + ext
+    path = output.joinpath(str(ULID())).with_suffix(ext)
+    if not infotext:
+        image.save(path, quality=quality, lossless=lossless)
+        return
+
+    if ext.lower().endswith("png"):
+        pnginfo = PngImagePlugin.PngInfo()
+        pnginfo.add_text("parameters", infotext)
+        image.save(path, pnginfo=pnginfo, quality=quality)
+        return
+
+    exif = image.getexif()
+    # https://github.com/python-pillow/Pillow/issues/4935#issuecomment-698027721
+    exif[0x9286] = infotext
+    image.save(path, quality=quality, lossless=lossless, exif=exif)
