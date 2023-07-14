@@ -1,17 +1,19 @@
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 from enum import IntEnum
 from pathlib import Path
-from typing import Any, Dict, List, Literal, Mapping, Optional, Sized, Union
+from typing import Any, Dict, List, Literal, Mapping, Optional, Union
 
 from beartype import beartype
 from PIL import Image
+
+from .base import AsdictMixin
 
 Number = Union[int, float]
 
 
 @beartype
 @dataclass
-class _2IMG:  # noqa: N801
+class _2IMG(AsdictMixin):  # noqa: N801
     prompt: str = ""
     styles: List[str] = field(default_factory=list)
     seed: int = -1
@@ -44,16 +46,6 @@ class _2IMG:  # noqa: N801
     send_images: bool = True
     save_images: bool = False
     alwayson_scripts: Mapping[str, Any] = field(default_factory=dict)
-
-    def asdict(self) -> Dict[str, Any]:
-        d = asdict(self)
-        for attr in self.__dataclass_fields__:
-            value = getattr(self, attr)
-            default = self.__dataclass_fields__[attr].default
-
-            if value == default or (isinstance(value, Sized) and not value):
-                del d[attr]
-        return d
 
 
 @beartype
@@ -111,9 +103,13 @@ class IMG2IMG(_2IMG):
     ] = InpaintingMaskInvert.Inpaint_masked
     initial_noise_multiplier: Optional[Number] = None
 
+    ResizeMode = ResizeMode
+    InpaintingFill = InpaintingFill
+    InpaintingMaskInvert = InpaintingMaskInvert
+
 
 @dataclass
-class Response:
+class ToImageResponse:
     images: List[Image.Image]
     parameters: Dict[str, Any]
     info: Dict[str, Any]
