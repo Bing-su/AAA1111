@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import rich.progress as pg
+from PIL import Image, PngImagePlugin
 from rich.console import Group
 from rich.live import Live
 from rich.panel import Panel
@@ -144,7 +145,7 @@ def _inner(
                 raise ValueError(msg)
 
             for image in resp.images:
-                image.save(output / (f"{ULID()}.{save_ext}"), quality=95, lossless=True)
+                save_image(image, resp.info, output, save_ext, i)
 
             progress.update(pg_task, advance=1)
             live.refresh()
@@ -159,6 +160,29 @@ def format_payload(payload: Dict[str, Any]) -> str:
 def filter_paths(paths: List[Path]) -> List[Path]:
     ext = [".yaml", ".yml", ".json", ".toml"]
     return [p for p in paths if p.is_file() and p.suffix in ext]
+
+
+def save_image(
+    image: Image.Image, info: Dict[str, Any], output: Path, ext: str, idx: int = 0
+):
+    infotexts = info.get("infotexts", [])
+    path = output.joinpath(f"{ULID()}.{ext}")
+    if not infotexts:
+        image.save(path, quality=95, lossless=True)
+        return
+
+    idx %= len(infotexts)
+    infotext = infotexts[idx]
+    if ext.lower() == "png":
+        pnginfo = PngImagePlugin.PngInfo()
+        pnginfo.add_text("parameters", infotext)
+        image.save(path, pnginfo=pnginfo, quality=95)
+        return
+
+    exif = image.getexif()
+    # https://github.com/python-pillow/Pillow/issues/4935#issuecomment-698027721
+    exif[0x9286] = infotext
+    image.save(path, quality=95, lossless=True, exif=exif)
 
 
 if __name__ == "__main__":
