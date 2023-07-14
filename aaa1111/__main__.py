@@ -144,8 +144,8 @@ def _inner(
                 msg = f"Unknown task: {task}"
                 raise ValueError(msg)
 
-            for image in resp.images:
-                save_image(image, resp.info, output, save_ext, i)
+            for j, image in enumerate(resp.images):
+                save_image(image, resp.info, output, save_ext, j)
 
             progress.update(pg_task, advance=1)
             live.refresh()
