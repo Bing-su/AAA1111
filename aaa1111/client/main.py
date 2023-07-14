@@ -77,6 +77,8 @@ class AAA1111(ToImageMixin):
 
     @staticmethod
     def _get_payload(payload: Any) -> Dict[str, Any]:
+        if hasattr(payload, "asdict"):
+            return payload.asdict()
         if is_dataclass(payload):
             return asdict(payload)
         if isinstance(payload, (str, Path)):
@@ -90,6 +92,8 @@ class AAA1111(ToImageMixin):
 
     @staticmethod
     async def _aget_payload(payload: Any) -> Dict[str, Any]:
+        if hasattr(payload, "asdict"):
+            return payload.asdict()
         if is_dataclass(payload):
             return asdict(payload)
         if isinstance(payload, (str, Path)):

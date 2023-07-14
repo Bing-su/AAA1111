@@ -8,10 +8,7 @@ from httpx import AsyncClient, Client
 
 from aaa1111.types import IMG2IMG, TXT2IMG, ToImageResponse
 from aaa1111.utils import (
-    aload_dict_file,
     arecursive_read_image,
-    base64_to_image,
-    load_dict_file,
     recursive_read_image,
 )
 
@@ -29,10 +26,7 @@ class ToImageMixin(ABC):
         endpoint: str,
         **kwargs,
     ):
-        if isinstance(payload, (str, Path)):
-            payload = load_dict_file(payload)
-        elif isinstance(payload, (TXT2IMG, IMG2IMG)):
-            payload = payload.asdict()
+        payload = self._get_payload(payload)
         payload = {**self.defaults, **payload, **kwargs}
         payload = recursive_read_image(payload)
 
@@ -41,7 +35,6 @@ class ToImageMixin(ABC):
 
         data = resp.json()
         images = data["images"]
-        images = [base64_to_image(img) for img in images]
         info = orjson.loads(data["info"])
         return ToImageResponse(
             images=images,
@@ -57,10 +50,7 @@ class ToImageMixin(ABC):
         endpoint: str,
         **kwargs,
     ):
-        if isinstance(payload, (str, Path)):
-            payload = await aload_dict_file(payload)
-        elif isinstance(payload, (TXT2IMG, IMG2IMG)):
-            payload = payload.asdict()
+        payload = await self._aget_payload(payload)
         payload = {**self.defaults, **payload, **kwargs}
         payload = await arecursive_read_image(payload)
 
@@ -69,7 +59,6 @@ class ToImageMixin(ABC):
         data = resp.json()
 
         images = data["images"]
-        images = [base64_to_image(img) for img in images]
         info = orjson.loads(data["info"])
         return ToImageResponse(
             images=images,

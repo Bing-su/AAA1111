@@ -4,7 +4,7 @@ from .extras import (
     ExtrasSingleImage,
     ExtrasSingleImageResponse,
 )
-from .gen import IMG2IMG, TXT2IMG, ToImageResponse
+from .toimg import IMG2IMG, TXT2IMG, ToImageResponse
 
 __all__ = [
     "IMG2IMG",

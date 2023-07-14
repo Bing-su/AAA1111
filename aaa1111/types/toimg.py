@@ -6,6 +6,8 @@ from typing import Any, Dict, List, Literal, Mapping, Optional, Union
 from beartype import beartype
 from PIL import Image
 
+from aaa1111.utils import base64_to_image
+
 from .base import AsdictMixin
 
 Number = Union[int, float]
@@ -113,3 +115,7 @@ class ToImageResponse:
     images: List[Image.Image]
     parameters: Dict[str, Any]
     info: Dict[str, Any]
+
+    def __post_init__(self):
+        if self.images and isinstance(self.images[0], str):
+            self.images = [base64_to_image(img) for img in self.images]
