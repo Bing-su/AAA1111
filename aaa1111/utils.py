@@ -1,7 +1,7 @@
 import base64
 import io
 from pathlib import Path
-from typing import Any, Dict, Mapping, Optional, Sequence, Union
+from typing import Any, Dict, Mapping, Optional, Sequence
 
 import orjson
 import pyjson5
@@ -11,12 +11,13 @@ from PIL import Image, PngImagePlugin
 from ruamel.yaml import YAML
 from ulid import ULID
 
-Image_Type = Union[str, Path, Image.Image]
+from aaa1111.types.base import ImageType, PathType
+
 FILE_EXT = (".toml", ".yaml", ".yml", ".json", ".json5")
 available_extensions = Image.registered_extensions()
 
 
-def image_to_base64(img: Image_Type) -> str:
+def image_to_base64(img: ImageType) -> str:
     if isinstance(img, Image.Image):
         buf = io.BytesIO()
         img.save(buf, format="webp", lossless=True)
@@ -30,7 +31,7 @@ def image_to_base64(img: Image_Type) -> str:
     return base64.b64encode(value).decode("utf-8")
 
 
-async def aimage_to_base64(img: Image_Type) -> str:
+async def aimage_to_base64(img: ImageType) -> str:
     if isinstance(img, Image.Image):
         buf = io.BytesIO()
         img.save(buf, format="webp", lossless=True)
@@ -49,7 +50,7 @@ def base64_to_image(s: str) -> Image.Image:
 
 
 def is_image(obj: Any) -> bool:
-    if isinstance(obj, (str, Path)) and (p := Path(obj)).is_file():
+    if isinstance(obj, PathType) and (p := Path(obj)).is_file():
         return p.suffix.lower() in available_extensions
     return isinstance(obj, Image.Image)
 
@@ -94,12 +95,12 @@ async def arecursive_read_image(item: Mapping[str, Any]) -> Dict[str, Any]:
     return await _arecursive_read_image(item)
 
 
-def is_valid_file(file: Union[str, Path]) -> bool:
+def is_valid_file(file: PathType) -> bool:
     ext = Path(file).suffix.lower()
     return ext in FILE_EXT
 
 
-def load_from_file(file: Union[str, Path]) -> Dict[str, Any]:
+def load_from_file(file: PathType) -> Dict[str, Any]:
     if not is_valid_file(file):
         msg = f"Unsupported file extension: {file!r}"
         raise ValueError(msg)
@@ -115,7 +116,7 @@ def load_from_file(file: Union[str, Path]) -> Dict[str, Any]:
         return dict(YAML().load(raw))
 
 
-async def aload_from_file(file: Union[str, Path]) -> Dict[str, Any]:
+async def aload_from_file(file: PathType) -> Dict[str, Any]:
     if not is_valid_file(file):
         msg = f"Unsupported file extension: {file!r}"
         raise ValueError(msg)
