@@ -4,14 +4,14 @@ from .extras import (
     ExtrasSingleImage,
     ExtrasSingleImageResponse,
 )
-from .toimg import IMG2IMG, TXT2IMG, ToImageResponse
+from .toimg import IMG2IMG, TXT2IMG, Script
 
 __all__ = [
     "IMG2IMG",
     "TXT2IMG",
-    "ToImageResponse",
     "ExtrasBatchImages",
     "ExtrasSingleImage",
     "ExtrasSingleImageResponse",
     "ExtrasBatchImagesResponse",
+    "Script",
 ]

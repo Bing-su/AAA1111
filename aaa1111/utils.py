@@ -1,7 +1,7 @@
 import base64
 import io
 from pathlib import Path
-from typing import Any, Dict, Mapping, Optional, Sequence
+from typing import Any, Dict, Mapping, Optional, Sequence, Union
 
 import orjson
 import pyjson5
@@ -11,7 +11,8 @@ from PIL import Image, PngImagePlugin
 from ruamel.yaml import YAML
 from ulid import ULID
 
-from aaa1111.types.base import ImageType, PathType
+ImageType = Union[str, Path, Image.Image]  # prevent circular import
+PathType = Union[str, Path]
 
 FILE_EXT = (".toml", ".yaml", ".yml", ".json", ".json5")
 available_extensions = Image.registered_extensions()

@@ -1,14 +1,28 @@
+from abc import ABC
 from dataclasses import dataclass, field
 from enum import IntEnum
-from typing import Any, Dict, List, Literal, Mapping, Optional, Union
+from pathlib import Path
+from typing import Any, Dict, List, Literal, Mapping, Optional, Sequence, Union
 
 import orjson
 from beartype import beartype
 from PIL import Image
 
-from aaa1111.utils import base64_to_image
+from aaa1111.utils import base64_to_image, load_from_file
 
 from .base import AsdictMixin, ImageType, Number
+
+
+class ScriptBase(ABC):
+    title: str
+    args: List[Any]
+
+
+@beartype
+@dataclass
+class Script(ScriptBase):
+    title: str
+    args: List[Any] = field(default_factory=list)
 
 
 @beartype
@@ -42,10 +56,49 @@ class _2IMG(AsdictMixin):  # noqa: N801
     override_settings: Optional[Mapping[str, Any]] = None
     override_settings_restore_afterwards: bool = True
     script_args: List[Any] = field(default_factory=list)
-    script_name: Optional[str] = None
+    script_name: Union[str, Path, ScriptBase, None] = None
     send_images: bool = True
     save_images: bool = False
-    alwayson_scripts: Mapping[str, Any] = field(default_factory=dict)
+    alwayson_scripts: Union[str, Path, Mapping[str, Any], Sequence[ScriptBase]] = field(
+        default_factory=dict
+    )
+
+    def __post_init__(self):
+        # script
+        # 1. file
+        if (
+            isinstance(self.script_name, (str, Path))
+            and Path(self.script_name).is_file()
+        ):
+            if self.script_args:
+                msg = "if script_name is a file, script_args must be empty."
+                raise ValueError(msg)
+            data = load_from_file(self.script_name)
+            self.script_name = data["title"]
+            self.script_args = data.get("args", [])
+
+        # 2. Script Class
+        elif isinstance(self.script_name, ScriptBase):
+            if self.script_args:
+                msg = "if script_name is a Script object, script_args must be empty."
+                raise ValueError(msg)
+            self.script_args = self.script_name.args
+            self.script_name = self.script_name.title
+
+        # alwayson scripts
+        # 1. file
+        if isinstance(self.alwayson_scripts, (str, Path)):
+            if Path(self.alwayson_scripts).is_file():
+                self.alwayson_scripts = load_from_file(self.alwayson_scripts)
+            else:
+                msg = f"{self.alwayson_scripts!r} is not a valid file."
+                raise FileNotFoundError(msg)
+
+        # 2. Sequence of Scripts
+        elif self.alwayson_scripts and isinstance(self.alwayson_scripts, Sequence):
+            self.alwayson_scripts = {
+                script.title: {"args": script.args} for script in self.alwayson_scripts
+            }
 
 
 @beartype
