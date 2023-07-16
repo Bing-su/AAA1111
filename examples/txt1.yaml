@@ -13,4 +13,4 @@ override_settings:
 
 alwayson_scripts:
   Simple wildcards:
-    args: []
+    args: [] # Simple wildcards doesn't accept arguments

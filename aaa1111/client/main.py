@@ -7,7 +7,7 @@ from typing import Any, Dict, Mapping, Optional, Union
 from beartype import beartype
 from httpx import AsyncClient, BasicAuth, Client
 
-from aaa1111.utils import aload_dict_file, load_dict_file
+from aaa1111.utils import aload_from_file, load_from_file
 
 from .extras import ExtrasMixin
 from .toimg import ToImageMixin
@@ -36,7 +36,7 @@ class AAA1111(ExtrasMixin, ToImageMixin):
             init_base_url = base_url
 
         if isinstance(defaults, (str, Path)):
-            self.defaults = load_dict_file(defaults)
+            self.defaults = load_from_file(defaults)
         else:
             self.defaults = defaults or {}
 
@@ -83,7 +83,7 @@ class AAA1111(ExtrasMixin, ToImageMixin):
         if is_dataclass(payload):
             return asdict(payload)
         if isinstance(payload, (str, Path)):
-            return load_dict_file(payload)
+            return load_from_file(payload)
         if isinstance(payload, dict):
             return payload
         if isinstance(payload, Mapping):
@@ -98,7 +98,7 @@ class AAA1111(ExtrasMixin, ToImageMixin):
         if is_dataclass(payload):
             return asdict(payload)
         if isinstance(payload, (str, Path)):
-            return await aload_dict_file(payload)
+            return await aload_from_file(payload)
         if isinstance(payload, dict):
             return payload
         if isinstance(payload, Mapping):

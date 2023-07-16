@@ -12,7 +12,7 @@ from typer import Argument, Option, Typer
 from typing_extensions import Annotated
 
 from aaa1111.client import AAA1111
-from aaa1111.utils import load_dict_file, save_image
+from aaa1111.utils import FILE_EXT, load_from_file, save_image
 
 app_txt2img = Typer()
 app_img2img = Typer()
@@ -27,7 +27,7 @@ def txt2img(
         List[Path],
         Argument(
             show_default=False,
-            help="Path to params files. .toml, .yaml, .yml, .json available. others will be ignored.",
+            help="Path to params files. .toml, .yaml, .yml, .json, .json5 available. others will be ignored.",
             exists=True,
             rich_help_panel="api",
         ),
@@ -85,7 +85,7 @@ def img2img(
         List[Path],
         Argument(
             show_default=False,
-            help="Path to params files. .toml, .yaml, .yml, .json available. others will be ignored.",
+            help="Path to params files. .toml, .yaml, .yml, .json, .json5 available. others will be ignored.",
             exists=True,
             rich_help_panel="api",
         ),
@@ -168,7 +168,7 @@ def _inner(
 
     with Live(progress) as live:
         for i in range(length):
-            payload = load_dict_file(params[i])
+            payload = load_from_file(params[i])
             panel = Panel(
                 Syntax(format_payload(payload), "yaml", theme="ansi_dark"),
                 title=f"{task} [green]{i + 1}/{length}[/green]",
@@ -204,8 +204,7 @@ def format_payload(payload: Dict[str, Any]) -> str:
 
 
 def filter_paths(paths: List[Path]) -> List[Path]:
-    ext = [".yaml", ".yml", ".json", ".toml"]
-    return [p for p in paths if p.is_file() and p.suffix in ext]
+    return [p for p in paths if p.is_file() and p.suffix.lower() in FILE_EXT]
 
 
 if __name__ == "__main__":

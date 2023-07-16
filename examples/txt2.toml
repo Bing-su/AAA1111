@@ -13,4 +13,4 @@ CLIP_stop_at_last_layers = 2
 
 [alwayson_scripts]
 [alwayson_scripts."Simple wildcards"]
-args = []
+args = []  # Simple wildcards doesn't accept arguments

@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, Mapping, Optional, Sequence, Union
 
 import orjson
+import pyjson5
 import rtoml
 from aiofile import async_open
 from PIL import Image, PngImagePlugin
@@ -11,7 +12,7 @@ from ruamel.yaml import YAML
 from ulid import ULID
 
 Image_Type = Union[str, Path, Image.Image]
-DICT_EXT = (".toml", ".yaml", ".yml", ".json")
+FILE_EXT = (".toml", ".yaml", ".yml", ".json", ".json5")
 available_extensions = Image.registered_extensions()
 
 
@@ -93,31 +94,32 @@ async def arecursive_read_image(item: Mapping[str, Any]) -> Dict[str, Any]:
     return await _arecursive_read_image(item)
 
 
-def is_valid_dict_file(file: Union[str, Path]) -> bool:
-    ext = Path(file).suffix
-    return ext in DICT_EXT
+def is_valid_file(file: Union[str, Path]) -> bool:
+    ext = Path(file).suffix.lower()
+    return ext in FILE_EXT
 
 
-def load_dict_file(file: Union[str, Path]) -> Dict[str, Any]:
-    if not is_valid_dict_file(file):
+def load_from_file(file: Union[str, Path]) -> Dict[str, Any]:
+    if not is_valid_file(file):
         msg = f"Unsupported file extension: {file!r}"
         raise ValueError(msg)
-    ext = Path(file).suffix
+    ext = Path(file).suffix.lower()
 
     with open(file, encoding="utf-8") as raw:
         if ext == ".toml":
             return rtoml.load(raw)
         if ext == ".json":
             return orjson.loads(raw.read())
-        yaml = YAML()
-        return dict(yaml.load(raw))
+        if ext == ".json5":
+            return pyjson5.decode_io(raw)
+        return dict(YAML().load(raw))
 
 
-async def aload_dict_file(file: Union[str, Path]) -> Dict[str, Any]:
-    if not is_valid_dict_file(file):
+async def aload_from_file(file: Union[str, Path]) -> Dict[str, Any]:
+    if not is_valid_file(file):
         msg = f"Unsupported file extension: {file!r}"
         raise ValueError(msg)
-    ext = Path(file).suffix
+    ext = Path(file).suffix.lower()
 
     async with async_open(file, encoding="utf-8") as raw:
         data = await raw.read()
@@ -125,8 +127,9 @@ async def aload_dict_file(file: Union[str, Path]) -> Dict[str, Any]:
             return rtoml.loads(data)
         if ext == ".json":
             return orjson.loads(data)
-        yaml = YAML()
-        return dict(yaml.load(data))
+        if ext == ".json5":
+            return pyjson5.decode(data)
+        return dict(YAML().load(data))
 
 
 def save_image(
