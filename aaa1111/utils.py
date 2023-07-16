@@ -139,21 +139,23 @@ def save_image(
     ext: str = "png",
     quality: int = 95,
     lossless: bool = True,
-):
+) -> Path:
     if not ext.startswith("."):
         ext = "." + ext
     path = save_dir.joinpath(str(ULID())).with_suffix(ext)
+
     if not infotext:
         image.save(path, quality=quality, lossless=lossless)
-        return
 
-    if ext.lower().endswith("png"):
+    elif ext.lower().endswith("png"):
         pnginfo = PngImagePlugin.PngInfo()
         pnginfo.add_text("parameters", infotext)
         image.save(path, pnginfo=pnginfo, quality=quality)
-        return
 
-    exif = image.getexif()
-    # https://github.com/python-pillow/Pillow/issues/4935#issuecomment-698027721
-    exif[0x9286] = infotext
-    image.save(path, quality=quality, lossless=lossless, exif=exif)
+    else:
+        exif = image.getexif()
+        # https://github.com/python-pillow/Pillow/issues/4935#issuecomment-698027721
+        exif[0x9286] = infotext
+        image.save(path, quality=quality, lossless=lossless, exif=exif)
+
+    return path
