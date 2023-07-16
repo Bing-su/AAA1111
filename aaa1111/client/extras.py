@@ -5,7 +5,7 @@ from typing import Any, Mapping, Optional, Union
 from beartype import beartype
 from httpx import AsyncClient, Client
 
-from aaa1111.types import (
+from aaa1111.types.extras import (
     ExtrasBatchImages,
     ExtrasBatchImagesResponse,
     ExtrasSingleImage,

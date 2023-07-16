@@ -1,16 +1,14 @@
 from dataclasses import dataclass, field
 from enum import IntEnum
 from pathlib import Path
-from typing import List, Literal, Union
+from typing import List, Literal, Optional, Union
 
 from beartype import beartype
 from PIL import Image
 
 from aaa1111.utils import base64_to_image
 
-from .base import AsdictMixin
-
-Number = Union[int, float]
+from .base import AsdictMixin, ImageType, Number, PathType
 
 
 class ResizeMode(IntEnum):
@@ -41,17 +39,17 @@ class ExtraBase(AsdictMixin):
 @beartype
 @dataclass
 class ExtrasSingleImage(ExtraBase):
-    image: Union[str, Path, Image.Image, None] = None
+    image: Optional[ImageType] = None
 
 
 @beartype
 @dataclass
 class FileData:
-    data: Union[str, Path, Image.Image]
+    data: ImageType
     name: str = ""  # never used (v1.4.1)
 
     def __post_init__(self):
-        if isinstance(self.data, (str, Path)) and not self.name:
+        if not self.name and isinstance(self.data, PathType):
             self.name = Path(self.data).name
 
 

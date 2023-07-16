@@ -1,5 +1,12 @@
 from dataclasses import asdict, fields
-from typing import Any, Dict, Sized
+from pathlib import Path
+from typing import Any, Dict, Sized, Union
+
+from PIL import Image
+
+ImageType = Union[str, Path, Image.Image]
+PathType = Union[str, Path]
+Number = Union[int, float]
 
 
 class AsdictMixin:

@@ -2,11 +2,10 @@ from abc import ABC
 from pathlib import Path
 from typing import Any, Mapping, Optional, Union
 
-import orjson
 from beartype import beartype
 from httpx import AsyncClient, Client
 
-from aaa1111.types import IMG2IMG, TXT2IMG, ToImageResponse
+from aaa1111.types.toimg import IMG2IMG, TXT2IMG, ToImageResponse
 from aaa1111.utils import (
     arecursive_read_image,
     recursive_read_image,
@@ -34,12 +33,10 @@ class ToImageMixin(ABC):
         resp.raise_for_status()
 
         data = resp.json()
-        images = data["images"]
-        info = orjson.loads(data["info"])
         return ToImageResponse(
-            images=images,
+            images=data["images"],
             parameters=data["parameters"],
-            info=info,
+            info=data["info"],
         )
 
     async def _a2img(
@@ -58,12 +55,10 @@ class ToImageMixin(ABC):
         resp.raise_for_status()
         data = resp.json()
 
-        images = data["images"]
-        info = orjson.loads(data["info"])
         return ToImageResponse(
-            images=images,
+            images=data["images"],
             parameters=data["parameters"],
-            info=info,
+            info=data["info"],
         )
 
     def txt2img(

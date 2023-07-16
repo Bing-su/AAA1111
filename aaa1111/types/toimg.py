@@ -1,16 +1,14 @@
 from dataclasses import dataclass, field
 from enum import IntEnum
-from pathlib import Path
 from typing import Any, Dict, List, Literal, Mapping, Optional, Union
 
+import orjson
 from beartype import beartype
 from PIL import Image
 
 from aaa1111.utils import base64_to_image
 
-from .base import AsdictMixin
-
-Number = Union[int, float]
+from .base import AsdictMixin, ImageType, Number
 
 
 @beartype
@@ -89,11 +87,11 @@ class InpaintingMaskInvert(IntEnum):
 @beartype
 @dataclass
 class IMG2IMG(_2IMG):
-    init_images: List[Union[str, Path, Image.Image]] = field(default_factory=list)
+    init_images: List[ImageType] = field(default_factory=list)
     resize_mode: Union[ResizeMode, Literal[0, 1, 2, 3]] = ResizeMode.Just_resize
     denoising_strength: Number = 0.75
     image_cfg_scale: Optional[Number] = None
-    mask: Union[str, Path, Image.Image, None] = None
+    mask: Optional[ImageType] = None
     mask_blur: Optional[int] = None
     mask_blur_x: int = 4
     mask_blur_y: int = 4
@@ -119,3 +117,6 @@ class ToImageResponse:
     def __post_init__(self):
         if self.images and isinstance(self.images[0], str):
             self.images = [base64_to_image(img) for img in self.images]
+
+        if isinstance(self.info, str):
+            self.info = orjson.loads(self.info)
