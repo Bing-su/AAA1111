@@ -194,7 +194,8 @@ def _inner(
                 save_image(image, save_dir, infotext, save_ext, quality, lossless)
 
             progress.update(pg_task, advance=1)
-            live.refresh()
+
+        live.update(progress)
 
 
 def format_payload(payload: Dict[str, Any]) -> str:
