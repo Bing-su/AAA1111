@@ -22,7 +22,7 @@ class ProgressResponse:
     progress: Number
     eta_relative: Number
     state: Dict[str, Any]
-    current_image: Image.Image
+    current_image: Optional[Image.Image]
     textinfo: Optional[str] = None
 
     def __post_init__(self):

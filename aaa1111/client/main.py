@@ -7,7 +7,6 @@ from typing import Any, Dict, Mapping, Optional, Union
 from beartype import beartype
 from httpx import AsyncClient, BasicAuth, Client
 
-from aaa1111.types.base import PathType
 from aaa1111.utils import aload_from_file, load_from_file
 
 from .act import ActMixin
@@ -85,7 +84,7 @@ class AAA1111(InfoMixin, ActMixin, ExtrasMixin, ToImageMixin):
             return payload.asdict()
         if is_dataclass(payload) and not isinstance(payload, type):
             return asdict(payload)
-        if isinstance(payload, PathType):
+        if isinstance(payload, (str, Path)):
             return load_from_file(payload)
         if isinstance(payload, dict):
             return payload
@@ -100,7 +99,7 @@ class AAA1111(InfoMixin, ActMixin, ExtrasMixin, ToImageMixin):
             return payload.asdict()
         if is_dataclass(payload) and not isinstance(payload, type):
             return asdict(payload)
-        if isinstance(payload, PathType):
+        if isinstance(payload, (str, Path)):
             return await aload_from_file(payload)
         if isinstance(payload, dict):
             return payload

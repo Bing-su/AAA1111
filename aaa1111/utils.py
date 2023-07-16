@@ -50,7 +50,7 @@ def base64_to_image(s: str) -> Image.Image:
 
 
 def is_image(obj: Any) -> bool:
-    if isinstance(obj, PathType) and (p := Path(obj)).is_file():
+    if isinstance(obj, (str, Path)) and (p := Path(obj)).is_file():
         return p.suffix.lower() in available_extensions
     return isinstance(obj, Image.Image)
 
