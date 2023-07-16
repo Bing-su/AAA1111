@@ -4,8 +4,8 @@ from typing import List, Literal, Optional, Union
 
 from beartype import beartype
 
-from .base import ImageType, Number
-from .toimg import ScriptBase
+from aaa1111.types.base import ImageType, Number
+from aaa1111.types.toimg import ScriptBase
 
 
 class ControlNetResizeMode(IntEnum):
@@ -58,7 +58,7 @@ class ControlNetArgs:
 @beartype
 @dataclass
 class ControlNet(ScriptBase):
-    _args: List[ControlNetArgs]
+    _args: Union[ControlNetArgs, List[ControlNetArgs]]
 
     @property
     def title(self):
@@ -66,4 +66,6 @@ class ControlNet(ScriptBase):
 
     @property
     def args(self):
+        if isinstance(self._args, ControlNetArgs):
+            return [self._args.args()]
         return [x.args() for x in self._args]
