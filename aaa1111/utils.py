@@ -3,7 +3,6 @@ import io
 from pathlib import Path
 from typing import Any, Dict, Mapping, Optional, Sequence, Union
 
-import filetype
 import orjson
 import rtoml
 from aiofile import async_open
@@ -13,13 +12,14 @@ from ulid import ULID
 
 Image_Type = Union[str, Path, Image.Image]
 DICT_EXT = (".toml", ".yaml", ".yml", ".json")
+available_extensions = Image.registered_extensions()
 
 
 def image_to_base64(img: Image_Type) -> str:
     if isinstance(img, Image.Image):
-        buffer = io.BytesIO()
-        img.save(buffer)
-        value = buffer.getvalue()
+        buf = io.BytesIO()
+        img.save(buf, format="webp", lossless=True)
+        value = buf.getvalue()
     else:
         if isinstance(img, str) and not Path(img).is_file():
             # expect img is base64 string
@@ -31,9 +31,9 @@ def image_to_base64(img: Image_Type) -> str:
 
 async def aimage_to_base64(img: Image_Type) -> str:
     if isinstance(img, Image.Image):
-        buffer = io.BytesIO()
-        img.save(buffer)
-        value = buffer.getvalue()
+        buf = io.BytesIO()
+        img.save(buf, format="webp", lossless=True)
+        value = buf.getvalue()
     else:
         if isinstance(img, str) and not Path(img).is_file():
             # expect img is base64 string
@@ -47,21 +47,21 @@ def base64_to_image(s: str) -> Image.Image:
     return Image.open(io.BytesIO(base64.b64decode(s)))
 
 
-def is_image_file(obj: Any) -> bool:
-    if isinstance(obj, (str, Path)) and Path(obj).is_file():
-        return filetype.image_match(obj) is not None
-    return False
+def is_image(obj: Any) -> bool:
+    if isinstance(obj, (str, Path)) and (p := Path(obj)).is_file():
+        return p.suffix.lower() in available_extensions
+    return isinstance(obj, Image.Image)
 
 
 def _recursive_read_image(item: Any):
     if not isinstance(item, str) and isinstance(item, Sequence):
         return [
-            image_to_base64(v) if is_image_file(v) else _recursive_read_image(v)
+            image_to_base64(v) if is_image(v) else _recursive_read_image(v)
             for v in item
         ]
     if isinstance(item, Mapping):
         return {
-            k: image_to_base64(v) if is_image_file(v) else _recursive_read_image(v)
+            k: image_to_base64(v) if is_image(v) else _recursive_read_image(v)
             for k, v in item.items()
         }
     return item
@@ -75,14 +75,14 @@ async def _arecursive_read_image(item: Any):
     if not isinstance(item, str) and isinstance(item, Sequence):
         return [
             (await aimage_to_base64(v))
-            if is_image_file(v)
+            if is_image(v)
             else (await _arecursive_read_image(v))
             for v in item
         ]
     if isinstance(item, Mapping):
         return {
             k: (await aimage_to_base64(v))
-            if is_image_file(v)
+            if is_image(v)
             else (await _arecursive_read_image(v))
             for k, v in item.items()
         }
