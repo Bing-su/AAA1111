@@ -21,7 +21,14 @@ available_extensions = Image.registered_extensions()
 def image_to_base64(img: ImageType) -> str:
     if isinstance(img, Image.Image):
         buf = io.BytesIO()
-        img.save(buf, format="webp", lossless=True)
+        # 1. png
+        if "parameters" in img.info:
+            pnginfo = PngImagePlugin.PngInfo()
+            pnginfo.add_text("parameters", img.info["parameters"])
+            img.save(buf, format="png", pnginfo=pnginfo)
+        # 2. else
+        else:
+            img.save(buf, format="webp", lossless=True, exif=img.getexif())
         value = buf.getvalue()
     else:
         if isinstance(img, str) and not Path(img).is_file():
@@ -35,7 +42,14 @@ def image_to_base64(img: ImageType) -> str:
 async def aimage_to_base64(img: ImageType) -> str:
     if isinstance(img, Image.Image):
         buf = io.BytesIO()
-        img.save(buf, format="webp", lossless=True)
+        # 1. png
+        if "parameters" in img.info:
+            pnginfo = PngImagePlugin.PngInfo()
+            pnginfo.add_text("parameters", img.info["parameters"])
+            img.save(buf, format="png", pnginfo=pnginfo)
+        # 2. else
+        else:
+            img.save(buf, format="webp", lossless=True, exif=img.getexif())
         value = buf.getvalue()
     else:
         if isinstance(img, str) and not Path(img).is_file():
