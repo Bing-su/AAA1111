@@ -152,13 +152,15 @@ class ToImageMixin(ABC):
     @staticmethod
     def _convert_script(data: Dict[str, Any]) -> Dict[str, Any]:
         for k in ("script_name", "alwayson_scripts"):
+            if k not in data:
+                continue
             v = data[k]
             if isinstance(v, ScriptBase):
                 data[k] = v.asdict()
             elif isinstance(v, (str, Path)) and Path(v).is_file():
                 data[k] = load_from_file(v)
 
-        if isinstance(data["script_name"], Mapping):
+        if isinstance(data.get("script_name"), Mapping):
             data["script_args"] = data["script_name"].get("args", [])
             data["script_name"] = data["script_name"]["title"]
 
@@ -167,13 +169,15 @@ class ToImageMixin(ABC):
     @staticmethod
     async def _aconvert_script(data: Dict[str, Any]) -> Dict[str, Any]:
         for k in ("script_name", "alwayson_scripts"):
+            if k not in data:
+                continue
             v = data[k]
             if isinstance(v, ScriptBase):
                 data[k] = v.asdict()
             elif isinstance(v, (str, Path)) and Path(v).is_file():
                 data[k] = await aload_from_file(v)
 
-        if isinstance(data["script_name"], Mapping):
+        if isinstance(data.get("script_name"), Mapping):
             data["script_args"] = data["script_name"].get("args", [])
             data["script_name"] = data["script_name"]["title"]
 
