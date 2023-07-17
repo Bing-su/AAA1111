@@ -44,6 +44,10 @@ dev = [
     "pre-commit",
     "ipywidgets",
 ]
+test = [
+    "pytest",
+    "python-dotenv",
+]
 
 [tool.pdm.version]
 source = "file"
