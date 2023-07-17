@@ -14,7 +14,7 @@ REFRESH_LYCOS = "/sdapi/v1/refresh-lycos"
 
 
 @beartype
-class ActMixin(ABC):
+class ActionMixin(ABC):
     client: Client
     aclient: AsyncClient
 
