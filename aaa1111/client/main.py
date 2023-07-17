@@ -11,6 +11,7 @@ from aaa1111.utils import load_from_file
 from .action import ActionMixin
 from .extras import ExtrasMixin
 from .info import InfoMixin
+from .options import OptionsMixin
 from .toimg import ToImageMixin
 
 if platform.system() == "Windows":
@@ -18,7 +19,7 @@ if platform.system() == "Windows":
 
 
 @beartype
-class AAA1111(InfoMixin, ActionMixin, ExtrasMixin, ToImageMixin):
+class AAA1111(OptionsMixin, InfoMixin, ActionMixin, ExtrasMixin, ToImageMixin):
     def __init__(
         self,
         host: str = "127.0.0.1",
