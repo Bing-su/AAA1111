@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Mapping, Optional, Union
 
 from beartype import beartype
-from httpx import AsyncClient, BasicAuth, Client
+from httpx import URL, AsyncClient, BasicAuth, Client, Timeout
 
 from aaa1111.utils import load_from_file
 
@@ -70,10 +70,19 @@ class AAA1111(OptionsMixin, InfoMixin, ActionMixin, ExtrasMixin, ToImageMixin):
             asyncio.run(self.aclient.aclose())
 
     @property
-    def base_url(self):
+    def base_url(self) -> URL:
         return self.client.base_url
 
     @base_url.setter
-    def base_url(self, url: str):
+    def base_url(self, url: Union[str, URL]):
         self.client.base_url = url
         self.aclient.base_url = url
+
+    @property
+    def timeout(self) -> Timeout:
+        return self.client.timeout
+
+    @timeout.setter
+    def timeout(self, timeout: Any):
+        self.client.timeout = timeout
+        self.aclient.timeout = timeout
