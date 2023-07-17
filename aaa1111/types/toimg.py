@@ -17,6 +17,9 @@ class ScriptBase(ABC):
     title: str
     args: List[Any]
 
+    def asdict(self):
+        return {self.title: {"args": self.args}}
+
 
 @beartype
 @dataclass

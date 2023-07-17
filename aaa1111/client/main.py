@@ -1,13 +1,12 @@
 import asyncio
 import platform
-from dataclasses import asdict, is_dataclass
 from pathlib import Path
-from typing import Any, Dict, Mapping, Optional, Union
+from typing import Any, Mapping, Optional, Union
 
 from beartype import beartype
 from httpx import AsyncClient, BasicAuth, Client
 
-from aaa1111.utils import aload_from_file, load_from_file
+from aaa1111.utils import load_from_file
 
 from .action import ActionMixin
 from .extras import ExtrasMixin
@@ -77,33 +76,3 @@ class AAA1111(InfoMixin, ActionMixin, ExtrasMixin, ToImageMixin):
     def base_url(self, url: str):
         self.client.base_url = url
         self.aclient.base_url = url
-
-    @staticmethod
-    def _get_payload(payload: Any) -> Dict[str, Any]:
-        if hasattr(payload, "asdict"):
-            return payload.asdict()
-        if is_dataclass(payload) and not isinstance(payload, type):
-            return asdict(payload)
-        if isinstance(payload, (str, Path)):
-            return load_from_file(payload)
-        if isinstance(payload, dict):
-            return payload
-        if isinstance(payload, Mapping):
-            return dict(payload)
-        msg = f"Unsupported payload type: {type(payload)}"
-        raise ValueError(msg)
-
-    @staticmethod
-    async def _aget_payload(payload: Any) -> Dict[str, Any]:
-        if hasattr(payload, "asdict"):
-            return payload.asdict()
-        if is_dataclass(payload) and not isinstance(payload, type):
-            return asdict(payload)
-        if isinstance(payload, (str, Path)):
-            return await aload_from_file(payload)
-        if isinstance(payload, dict):
-            return payload
-        if isinstance(payload, Mapping):
-            return dict(payload)
-        msg = f"Unsupported payload type: {type(payload)}"
-        raise ValueError(msg)
