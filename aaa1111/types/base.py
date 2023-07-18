@@ -1,4 +1,4 @@
-from dataclasses import asdict, fields
+from dataclasses import MISSING, fields
 from pathlib import Path
 from typing import Any, Dict, Sized, Union
 
@@ -11,11 +11,13 @@ Number = Union[int, float]
 
 class AsdictMixin:
     def asdict(self) -> Dict[str, Any]:
-        d = asdict(self)
+        d = {}
         for field in fields(self):
             value = getattr(self, field.name)
             default = field.default
 
-            if value == default or (isinstance(value, Sized) and not value):
-                d.pop(field.name, None)
+            if (default is not MISSING and value != default) or (
+                not isinstance(value, str) and isinstance(value, Sized) and value
+            ):
+                d[field.name] = value
         return d
