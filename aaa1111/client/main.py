@@ -1,5 +1,4 @@
 import asyncio
-import platform
 from pathlib import Path
 from typing import Any, Mapping, Optional, Union
 
@@ -13,9 +12,6 @@ from .extras import ExtrasMixin
 from .info import InfoMixin
 from .options import OptionsMixin
 from .toimg import ToImageMixin
-
-if platform.system() == "Windows":
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
 @beartype

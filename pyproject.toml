@@ -46,6 +46,7 @@ dev = [
 ]
 test = [
     "pytest",
+    "pytest-asyncio",
     "python-dotenv",
 ]
 
@@ -57,3 +58,6 @@ path = "aaa1111/__version__.py"
 select = ["A", "B", "C4", "C90", "E", "EM", "F", "FA", "I001", "ISC", "N", "PIE", "PT", "RET", "RUF", "SIM", "UP", "W"]
 ignore = ["B008", "B905", "E501", "FA100"]
 unfixable = ["F401"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

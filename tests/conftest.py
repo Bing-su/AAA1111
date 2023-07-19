@@ -1,3 +1,4 @@
+import asyncio
 import os
 import subprocess
 import time
@@ -18,6 +19,9 @@ cmd_args = [
     "aaa1111:test",
 ]
 process = None
+
+if os.name == "nt":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
 def pytest_sessionstart(session: pytest.Session) -> None:
