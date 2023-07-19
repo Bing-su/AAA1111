@@ -7,6 +7,7 @@ import orjson
 import pyjson5
 import rtoml
 from aiofile import async_open
+from beartype import beartype
 from PIL import Image, PngImagePlugin
 from ruamel.yaml import YAML
 from ulid import ULID
@@ -18,48 +19,48 @@ FILE_EXT = (".toml", ".yaml", ".yml", ".json", ".json5")
 available_extensions = Image.registered_extensions()
 
 
+@beartype
+def pil_to_base64(img: Image.Image) -> str:
+    buf = io.BytesIO()
+    # 1. png
+    if "parameters" in img.info:
+        pnginfo = PngImagePlugin.PngInfo()
+        pnginfo.add_text("parameters", img.info["parameters"])
+        img.save(buf, format="png", pnginfo=pnginfo)
+    # 2. else
+    else:
+        img.save(buf, format="webp", lossless=True, exif=img.getexif())
+    value = buf.getvalue()
+    return base64.b64encode(value).decode("utf-8")
+
+
+@beartype
 def image_to_base64(img: ImageType) -> str:
     if isinstance(img, Image.Image):
-        buf = io.BytesIO()
-        # 1. png
-        if "parameters" in img.info:
-            pnginfo = PngImagePlugin.PngInfo()
-            pnginfo.add_text("parameters", img.info["parameters"])
-            img.save(buf, format="png", pnginfo=pnginfo)
-        # 2. else
-        else:
-            img.save(buf, format="webp", lossless=True, exif=img.getexif())
-        value = buf.getvalue()
-    else:
-        if isinstance(img, str) and not Path(img).is_file():
-            # expect img is base64 string
-            return img
-        with open(img, "rb") as f:
-            value = f.read()
+        return pil_to_base64(img)
+
+    if isinstance(img, str) and not Path(img).is_file():
+        # expect img is base64 string
+        return img
+    with open(img, "rb") as f:
+        value = f.read()
     return base64.b64encode(value).decode("utf-8")
 
 
+@beartype
 async def aimage_to_base64(img: ImageType) -> str:
     if isinstance(img, Image.Image):
-        buf = io.BytesIO()
-        # 1. png
-        if "parameters" in img.info:
-            pnginfo = PngImagePlugin.PngInfo()
-            pnginfo.add_text("parameters", img.info["parameters"])
-            img.save(buf, format="png", pnginfo=pnginfo)
-        # 2. else
-        else:
-            img.save(buf, format="webp", lossless=True, exif=img.getexif())
-        value = buf.getvalue()
-    else:
-        if isinstance(img, str) and not Path(img).is_file():
-            # expect img is base64 string
-            return img
-        async with async_open(img, "rb") as f:
-            value = await f.read()
+        return pil_to_base64(img)
+
+    if isinstance(img, str) and not Path(img).is_file():
+        # expect img is base64 string
+        return img
+    async with async_open(img, "rb") as f:
+        value = await f.read()
     return base64.b64encode(value).decode("utf-8")
 
 
+@beartype
 def base64_to_image(s: str) -> Image.Image:
     return Image.open(io.BytesIO(base64.b64decode(s)))
 
@@ -110,11 +111,13 @@ async def arecursive_read_image(item: Mapping[str, Any]) -> Dict[str, Any]:
     return await _arecursive_read_image(item)
 
 
+@beartype
 def is_valid_file(file: PathType) -> bool:
     ext = Path(file).suffix.lower()
     return ext in FILE_EXT
 
 
+@beartype
 def load_from_file(file: PathType) -> Dict[str, Any]:
     if not is_valid_file(file):
         msg = f"Unsupported file extension: {file!r}"
@@ -131,6 +134,7 @@ def load_from_file(file: PathType) -> Dict[str, Any]:
         return dict(YAML().load(raw))
 
 
+@beartype
 async def aload_from_file(file: PathType) -> Dict[str, Any]:
     if not is_valid_file(file):
         msg = f"Unsupported file extension: {file!r}"
