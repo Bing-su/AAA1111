@@ -1,0 +1,25 @@
+# https://taskfile.dev
+
+version: "3"
+
+dotenv:
+  - .env
+
+tasks:
+  lint:
+    cmds:
+      - pre-commit run -a
+
+  launch:
+    dir: "{{.AAA1111_WEBUI}}"
+    cmds:
+      - "{{.AAA1111_PYTHON}} launch.py  --xformers --api"
+
+  gen_async_tests:
+    cmds:
+      - python tests/async.py
+
+  test:
+    cmds:
+      - task: gen_async_tests
+      - pytest
